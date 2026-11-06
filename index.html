@@ -14,7 +14,7 @@
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;color:var(--char);
   background:radial-gradient(120% 90% at 50% 18%,#FFFDF8 0%,var(--cream) 45%,var(--sage) 100%);user-select:none;-webkit-user-select:none}
-#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:default}
 
 .iconbtn{position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:12px;z-index:5;border:0;background:rgba(255,255,255,.85);
   backdrop-filter:blur(8px);width:38px;height:38px;border-radius:50%;font-size:17px;box-shadow:0 2px 8px rgba(46,94,78,.15);cursor:pointer}
@@ -139,8 +139,8 @@ const Sound={
     this.sweep(.42,320*r,1000*r,.2,.9);              // 공기를 다시 빨아들이며 부푸는 소리
     this.cells(9,.45,.12,2200,6500);                 // 부풀며 기포가 작게 터짐
   },
-  drag(){ if(!this.ctx||!S.sound)return;
-    this.sweep(.1,1100,800,.09,1.1);this.cells(3,.1,.12,1800,4800);
+  drag(v){ if(!this.ctx||!S.sound)return; v=v||.5;
+    this.sweep(.11,800+800*v,600+500*v,.06+.14*v,1.1);this.cells(2+Math.round(4*v),.1,.1+.12*v,1800,5000);
   },
   pop(){ if(!this.ctx||!S.sound)return; this.tone(620,1100,.07,.25); },
 };
@@ -300,7 +300,15 @@ addEventListener('resize',resize);resize();
 
 /* ---------- 입력: 꾹 누르기 = 말랑, 빈 곳 드래그 = 돌리기 ---------- */
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
-const ptr={down:false,mode:null,lx:0};
+const ptr={down:false,mode:null,lx:0,px:0,py:0,ls:0};
+/* 손맛: 휴대폰은 진동, PC는 진동이 불가능해서 화면 흔들림·소리·커서로 대신해요 */
+const hapticEl=(()=>{const l=document.createElement('label');l.style.cssText='position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none';
+  l.innerHTML='<input type="checkbox" switch>';document.body.appendChild(l);return l;})(); // 아이폰 Safari용 햅틱
+let lastHap=0,shake=0;
+function haptic(p){
+  const n=performance.now();if(n-lastHap<40)return;lastHap=n;
+  try{if(navigator.vibrate){navigator.vibrate(p);return;}hapticEl.click();}catch(e){}
+}
 const sq={x:0,pressed:false};         // 전체가 살짝 눌리는 정도 (튕김 없이 부드럽게)
 const dents=[];let heldDent=null;     // 손가락이 누른 자리들 (최대 6개, 놓으면 천천히 올라옴)
 const _inv=new THREE.Matrix4();
@@ -308,7 +316,7 @@ function localDir(){return ray.ray.direction.clone().transformDirection(_inv.cop
 function addDent(hit){
   if(dents.length>=NDENT)dents.shift();
   const p=pencil.worldToLocal(hit.point.clone());
-  const d={p,q:p.clone(),dir:localDir(),e:0,held:true};dents.push(d);return d;
+  const d={p,q:p.clone(),dir:localDir(),e:0,held:true,act:0};dents.push(d);return d;
 }
 let rotY=0,spinV=0,settle=false,tAll=0;
 function hitPencil(e){
@@ -324,25 +332,28 @@ canvas.addEventListener('pointerdown',e=>{
   ptr.down=true;ptr.lx=e.clientX;ptr.mode='spin';spinV=0;settle=false;
   const hit=S.stage==='play'?hitPencil(e):null;
   if(hit){
-    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}if(navigator.vibrate)navigator.vibrate(10);
+    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}haptic(24);shake=1;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
     S.count++;$('#cnt').textContent=S.count;if(MILESTONE[S.count])toast(MILESTONE[S.count]);
   }
 });
 canvas.addEventListener('pointermove',e=>{
-  if(!ptr.down)return;
+  if(!ptr.down){if(S.stage==='play')canvas.style.cursor=hitPencil(e)?'grab':'default';return;}
   const dx=e.clientX-ptr.lx;ptr.lx=e.clientX;
   if(ptr.mode==='spin'){rotY+=dx*.012;spinV=dx*.012*60*.6;}
   else if(ptr.mode==='squish'){ // 문지르면 손가락을 따라 반죽처럼 주물러져요
     const hit=hitPencil(e);
     if(hit&&heldDent){
       const lp=pencil.worldToLocal(hit.point.clone());
-      if(lp.distanceTo(heldDent.p)>.22)try{Sound.drag();}catch(err){}
+      const dist=Math.hypot(e.clientX-ptr.px,e.clientY-ptr.py);ptr.px=e.clientX;ptr.py=e.clientY;
+      heldDent.act=Math.min(1,heldDent.act+dist*.04);shake=Math.min(1,shake+dist*.012);
+      const now=performance.now();
+      if(dist>2&&now-ptr.ls>70){ptr.ls=now;try{Sound.drag(Math.min(1,dist/24));}catch(err){}haptic(5+Math.min(10,Math.round(dist*.3)));}
       heldDent.p.copy(lp);heldDent.dir.copy(localDir());
     }
   }
 });
 function release(){
-  if(ptr.mode==='squish'){sq.pressed=false;if(heldDent){heldDent.held=false;heldDent=null;}try{Sound.release();}catch(err){}}
+  if(ptr.mode==='squish'){sq.pressed=false;if(heldDent){heldDent.held=false;heldDent=null;}try{Sound.release();}catch(err){}haptic(12);canvas.style.cursor='grab';}
   ptr.down=false;ptr.mode=null;
 }
 canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
@@ -404,6 +415,7 @@ function frame(now){
   // 말랑이 변형: 누르는 동안 부드럽게 깊어지고, 놓으면 쫀득하게 천천히 올라와요 (튕김 없음)
   for(let i=dents.length-1;i>=0;i--){
     const d=dents[i];
+    d.act*=Math.exp(-dt*4);
     d.q.lerp(d.p,1-Math.exp(-dt*8));                         // 누른 자리가 손가락을 살짝 늦게 따라감 = 끌리는 느낌
     if(d.held)d.e+=(SQ_MAX-d.e)*(1-Math.exp(-dt*5.5));
     else d.e*=Math.exp(-dt*2.2);
@@ -411,11 +423,13 @@ function frame(now){
   }
   for(let i=0;i<NDENT;i++){
     const d=dents[i];
-    if(d){sqP[i].set(d.q.x,d.q.y,d.q.z,d.e);sqD[i].set(d.dir.x,d.dir.y,d.dir.z,0);
+    if(d){sqP[i].set(d.q.x,d.q.y,d.q.z,d.e*(1+.09*d.act*Math.sin(tAll*15)));sqD[i].set(d.dir.x,d.dir.y,d.dir.z,0);
       const k=d.e/SQ_MAX*.62;sqS[i].set((d.p.x-d.q.x)*k,(d.p.y-d.q.y)*k,(d.p.z-d.q.z)*k,0);}
     else sqP[i].set(0,0,0,0);
   }
 
+  shake*=Math.exp(-dt*9);
+  canvas.style.transform=shake>.02?`translate(${((Math.random()-.5)*5*shake).toFixed(2)}px,${((Math.random()-.5)*5*shake).toFixed(2)}px)`:'';
   updateCamera();renderer.render(scene,camera);
   requestAnimationFrame(frame);
 }
