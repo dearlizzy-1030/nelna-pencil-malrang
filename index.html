@@ -145,6 +145,7 @@ const Sound={
   drag(v){ if(!this.ctx||!S.sound)return; v=v||.5;
     this.sweep(.11,800+800*v,600+500*v,.06+.14*v,1.1);this.cells(2+Math.round(4*v),.1,.1+.12*v,1800,5000);
   },
+  hold(){ if(!this.ctx||!S.sound)return; this.sweep(.9,520,300,.1,.8); this.cells(3,.8,.06,1500,3800); },
   relief(){ if(!this.ctx||!S.sound)return; const c=this.ctx,t=c.currentTime;
     [392,494,587,784].forEach((f,i)=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;
       const g=c.createGain(),st=t+i*.12;g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.16,st+.05);g.gain.exponentialRampToValueAtTime(.001,st+1.1);
@@ -311,7 +312,7 @@ const ptr={down:false,mode:null,lx:0,px:0,py:0,ls:0};
 /* 손맛: 휴대폰은 진동, PC는 진동이 불가능해서 화면 흔들림·소리·커서로 대신해요 */
 const hapticEl=(()=>{const l=document.createElement('label');l.style.cssText='position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none';
   l.innerHTML='<input type="checkbox" switch>';document.body.appendChild(l);return l;})(); // 아이폰 Safari용 햅틱
-let lastHap=0,shake=0;
+let lastHap=0,shake=0,holdT=0,lastHold=0;
 function haptic(p){
   const n=performance.now();if(n-lastHap<40)return;lastHap=n;
   try{if(navigator.vibrate){navigator.vibrate(p);return;}hapticEl.click();}catch(e){}
@@ -352,7 +353,7 @@ canvas.addEventListener('pointerdown',e=>{
   const hit=S.stage==='play'?hitPencil(e):null;
   if(hit){
     ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}haptic(24);shake=.5;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
-    S.count++;$('#cnt').textContent=S.count;relieve(3);
+    S.count++;$('#cnt').textContent=S.count;relieve(.15);holdT=0;lastHold=performance.now();
   }
 });
 canvas.addEventListener('pointermove',e=>{
@@ -367,7 +368,7 @@ canvas.addEventListener('pointermove',e=>{
       heldDent.act=Math.min(1,heldDent.act+dist*.03);shake=Math.min(.6,shake+dist*.004);
       if(lp.distanceTo(heldDent.p)>.34){ // 충분히 움직이면 그 자리를 새로 꾹 누름 (이전 자리는 천천히 올라옴)
         heldDent.held=false;heldDent=addDent(hit,.75);
-        try{Sound.drag(Math.min(1,dist/24)+.3);}catch(err){}haptic(10);relieve(1.2);
+        try{Sound.drag(Math.min(1,dist/24)+.3);}catch(err){}haptic(10);relieve(.1);
       }
     }
   }
@@ -388,7 +389,7 @@ function go(st){
   if(st==='play'){
     rotY=((rotY%(2*PI))+2*PI)%(2*PI);if(rotY>PI)rotY-=2*PI;settle=true; // 로고가 정면으로 오게
     setTimeout(()=>{cur.target=$('#pp').offsetHeight;},60);cur.target=$('#pp').offsetHeight||130;
-    toast('꾹꾹 눌러서 스트레스를 풀어보세요');
+    toast('꾹~~ 오래 눌러야 스트레스가 풀려요');
   }
 }
 $('#startBtn').onclick=()=>{Sound.resume();Sound.pop();go('play');};
@@ -438,7 +439,7 @@ function frame(now){
     const d=dents[i];
     d.act*=Math.exp(-dt*4);
     d.q.copy(d.p);                         // 누른 자리가 손가락을 살짝 늦게 따라감 = 끌리는 느낌
-    if(d.held)d.e+=(d.max-d.e)*(1-Math.exp(-dt*5.5));
+    if(d.held){d.t=(d.t||0)+dt;d.e+=(d.max*(1+.25*Math.min(1,d.t/3))-d.e)*(1-Math.exp(-dt*5.5));}
     else d.e*=Math.exp(-dt*1.9);
     if(!d.held&&d.e<.004){dents.splice(i,1);if(heldDent===d)heldDent=null;}
   }
@@ -449,6 +450,11 @@ function frame(now){
     else sqP[i].set(0,0,0,0);
   }
 
+  if(ptr.down&&ptr.mode==='squish'&&heldDent){
+    holdT+=dt;relieve(dt*(.4+.8*Math.min(1,holdT/4)));      // 0.4%/초 → 최대 1.2%/초 (4초 이상 누르면)
+    const nowH=performance.now();
+    if(nowH-lastHold>800){lastHold=nowH;try{Sound.hold();}catch(e){}haptic(9);}
+  }
   shake*=Math.exp(-dt*9);
   canvas.style.transform=shake>.02?`translate(${((Math.random()-.5)*1.6*shake).toFixed(2)}px,${((Math.random()-.5)*1.6*shake).toFixed(2)}px)`:'';
   updateCamera();renderer.render(scene,camera);
