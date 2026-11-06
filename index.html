@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>낼나펜슬 말랑이 | 꾹 눌러서 말랑말랑 만져보는 3D ASMR</title>
-<meta name="description" content="낼나 펜슬을 꾹 눌러서 말랑말랑 만져보는 3D ASMR. 이어폰으로 들어보세요.">
+<title>낼나펜슬 말랑이 | 스트레스 풀리는 3D 말랑이 ASMR</title>
+<meta name="description" content="쌓인 스트레스를 꾹꾹 눌러서 푸는 낼나펜슬 말랑이 3D ASMR. 이어폰으로 들어보세요.">
 <meta property="og:title" content="낼나펜슬 말랑이">
-<meta property="og:description" content="꾹 눌러서 말랑말랑. 낼나펜슬 말랑이 ASMR">
+<meta property="og:description" content="쌓인 스트레스, 꾹꾹 눌러서 풀어요. 낼나펜슬 말랑이 ASMR">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
 :root{--green:#2E5E4E;--green-d:#1f4036;--cream:#FEF8F0;--yellow:#F8CF77;--sage:#E7F1DF;--char:#262929}
@@ -42,6 +42,8 @@ body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Ne
 .panel.show{transform:translate(-50%,0)}
 .pt{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:800;margin-bottom:12px}
 .pt b{color:var(--green);font-size:15px}
+.bar{height:10px;border-radius:99px;background:rgba(46,94,78,.14);overflow:hidden;margin:-4px 0 12px}
+.bar i{display:block;height:100%;width:100%;border-radius:99px;background:#E8806A;transition:width .25s,background .4s}
 .btnrow{display:flex;gap:8px}
 .btnrow>*{flex:1}
 
@@ -67,13 +69,14 @@ body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Ne
     <img class="logo" id="titleLogo" alt="nelna.">
     <h1>낼나펜슬 말랑이</h1>
     <p>낼나 펜슬을 꾹 눌러서 말랑 말랑 만져보세요</p>
-    <span class="chip">🎧 이어폰으로 들으면 더 시원해요</span>
+    <span class="chip">🌿 스트레스 해소 ASMR · 🎧 이어폰 추천</span>
   </div>
   <div class="foot"><button class="btn primary" id="startBtn">만져보기</button></div>
 </section>
 
 <section class="panel" id="pp">
-  <div class="pt"><span id="hintTxt">🤏 꾹 눌렀다가, 쓱 주물러보세요</span><span>말랑 <b id="cnt">0</b>번</span></div>
+  <div class="pt"><span id="stressTxt">😣 스트레스 <b id="stress">100</b>%</span><span>꾹꾹 <b id="cnt">0</b>번</span></div>
+  <div class="bar"><i id="stressBar"></i></div>
   <div class="btnrow">
     <button class="btn ghost" id="saveBtn">📷 이미지 저장</button>
     <a class="btn ghost" id="shopLink" href="https://nelna.shop" target="_blank" rel="noopener">낼나샵 구경하기</a>
@@ -142,6 +145,10 @@ const Sound={
   drag(v){ if(!this.ctx||!S.sound)return; v=v||.5;
     this.sweep(.11,800+800*v,600+500*v,.06+.14*v,1.1);this.cells(2+Math.round(4*v),.1,.1+.12*v,1800,5000);
   },
+  relief(){ if(!this.ctx||!S.sound)return; const c=this.ctx,t=c.currentTime;
+    [392,494,587,784].forEach((f,i)=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+      const g=c.createGain(),st=t+i*.12;g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.16,st+.05);g.gain.exponentialRampToValueAtTime(.001,st+1.1);
+      o.connect(g);g.connect(this.master);o.start(st);o.stop(st+1.2);}); },
   pop(){ if(!this.ctx||!S.sound)return; this.tone(620,1100,.07,.25); },
 };
 try{ if(localStorage.getItem('waxball_sound')==='0'){S.sound=false;$('#soundBtn').textContent='🔇';} }catch(e){}
@@ -323,7 +330,19 @@ function hitPencil(e){
   const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,camera);
   return ray.intersectObjects(pencilMeshes,false)[0]||null;
 }
-const MILESTONE={10:'말랑말랑 💚',30:'손맛 좋네요 ✨',60:'이쯤 되면 중독 🍀',100:'100번! 말랑이 장인 ✏️'};
+/* 스트레스 게이지: 누르고 주무를수록 줄어들어요 */
+let stress=100;
+const STRESS_MSG=[[70,'벌써 조금 풀렸어요 🌿'],[40,'숨 한번 크게 쉬어요 😮‍💨'],[15,'거의 다 풀렸어요 ✨']];
+function relieve(n){
+  if(stress<=0)return;
+  const before=stress;stress=Math.max(0,stress-n);
+  const pct=Math.round(stress);
+  $('#stress').textContent=pct;$('#stressBar').style.width=pct+'%';
+  $('#stressBar').style.background='hsl('+Math.round(12+(1-stress/100)*118)+',60%,58%)';
+  $('#stressTxt').firstChild.textContent=(stress>70?'😣':stress>40?'😕':stress>10?'🙂':'😌')+' 스트레스 ';
+  for(const [t,m] of STRESS_MSG)if(before>t&&stress<=t)toast(m);
+  if(stress<=0){S.relieved=true;toast('스트레스 0%! 오늘도 수고했어요 💚');try{Sound.relief();}catch(e){}haptic(40);}
+}
 let toastT=0;
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
 
@@ -332,8 +351,8 @@ canvas.addEventListener('pointerdown',e=>{
   ptr.down=true;ptr.lx=e.clientX;ptr.mode='spin';spinV=0;settle=false;
   const hit=S.stage==='play'?hitPencil(e):null;
   if(hit){
-    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}haptic(24);shake=1;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
-    S.count++;$('#cnt').textContent=S.count;if(MILESTONE[S.count])toast(MILESTONE[S.count]);
+    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}haptic(24);shake=.5;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
+    S.count++;$('#cnt').textContent=S.count;relieve(3);
   }
 });
 canvas.addEventListener('pointermove',e=>{
@@ -345,10 +364,10 @@ canvas.addEventListener('pointermove',e=>{
     if(hit&&heldDent){
       const lp=pencil.worldToLocal(hit.point.clone());
       const dist=Math.hypot(e.clientX-ptr.px,e.clientY-ptr.py);ptr.px=e.clientX;ptr.py=e.clientY;
-      heldDent.act=Math.min(1,heldDent.act+dist*.03);shake=Math.min(1,shake+dist*.01);
+      heldDent.act=Math.min(1,heldDent.act+dist*.03);shake=Math.min(.6,shake+dist*.004);
       if(lp.distanceTo(heldDent.p)>.34){ // 충분히 움직이면 그 자리를 새로 꾹 누름 (이전 자리는 천천히 올라옴)
         heldDent.held=false;heldDent=addDent(hit,.75);
-        try{Sound.drag(Math.min(1,dist/24)+.3);}catch(err){}haptic(10);
+        try{Sound.drag(Math.min(1,dist/24)+.3);}catch(err){}haptic(10);relieve(1.2);
       }
     }
   }
@@ -369,7 +388,7 @@ function go(st){
   if(st==='play'){
     rotY=((rotY%(2*PI))+2*PI)%(2*PI);if(rotY>PI)rotY-=2*PI;settle=true; // 로고가 정면으로 오게
     setTimeout(()=>{cur.target=$('#pp').offsetHeight;},60);cur.target=$('#pp').offsetHeight||130;
-    toast('펜슬을 꾹 눌러보세요');
+    toast('꾹꾹 눌러서 스트레스를 풀어보세요');
   }
 }
 $('#startBtn').onclick=()=>{Sound.resume();Sound.pop();go('play');};
@@ -387,6 +406,7 @@ $('#saveBtn').onclick=()=>{
     const bg=g.createRadialGradient(W/2,Hh*.3,60,W/2,Hh*.4,Hh*.8);bg.addColorStop(0,'#FFFDF8');bg.addColorStop(.5,'#FEF8F0');bg.addColorStop(1,'#E7F1DF');
     g.fillStyle=bg;g.fillRect(0,0,W,Hh);g.drawImage(img,0,60,W,Hh-60);
     g.textAlign='center';g.fillStyle='#2E5E4E';g.font='900 64px Pretendard,sans-serif';g.fillText('낼나펜슬 말랑이',W/2,130);
+    g.font='700 36px Pretendard,sans-serif';g.fillStyle='#4a8a6a';g.fillText(stress<=0?'스트레스 0% · 해소 완료 💚':'스트레스 '+Math.round(stress)+'% 남았어요',W/2,186);g.fillStyle='#2E5E4E';
     g.font='600 30px Pretendard,sans-serif';g.fillStyle='#6b7a72';g.fillText('nelna.shop',W/2,Hh-60);
     const a=document.createElement('a');a.download='nelna-pencil-malrang.png';a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
     toast('이미지를 저장했어요 📷');
@@ -430,7 +450,7 @@ function frame(now){
   }
 
   shake*=Math.exp(-dt*9);
-  canvas.style.transform=shake>.02?`translate(${((Math.random()-.5)*5*shake).toFixed(2)}px,${((Math.random()-.5)*5*shake).toFixed(2)}px)`:'';
+  canvas.style.transform=shake>.02?`translate(${((Math.random()-.5)*1.6*shake).toFixed(2)}px,${((Math.random()-.5)*1.6*shake).toFixed(2)}px)`:'';
   updateCamera();renderer.render(scene,camera);
   requestAnimationFrame(frame);
 }
