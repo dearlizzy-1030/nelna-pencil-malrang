@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>낼나펜슬 말랑이 | 꾹 눌러서 말랑말랑 만져보는 3D ASMR</title>
+<meta name="description" content="낼나 펜슬을 꾹 눌러서 말랑말랑 만져보는 3D ASMR. 이어폰으로 들어보세요.">
+<meta property="og:title" content="낼나펜슬 말랑이">
+<meta property="og:description" content="꾹 눌러서 말랑말랑. 낼나펜슬 말랑이 ASMR">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--green:#2E5E4E;--green-d:#1f4036;--cream:#FEF8F0;--yellow:#F8CF77;--sage:#E7F1DF;--char:#262929}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;color:var(--char);
+  background:radial-gradient(120% 90% at 50% 18%,#FFFDF8 0%,var(--cream) 45%,var(--sage) 100%);user-select:none;-webkit-user-select:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+
+.iconbtn{position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:12px;z-index:5;border:0;background:rgba(255,255,255,.85);
+  backdrop-filter:blur(8px);width:38px;height:38px;border-radius:50%;font-size:17px;box-shadow:0 2px 8px rgba(46,94,78,.15);cursor:pointer}
+
+#title{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;transition:opacity .4s}
+#title .head{padding-top:calc(env(safe-area-inset-top) + 34px);text-align:center}
+#title img.logo{height:44px;display:block;margin:0 auto 10px}
+#title h1{margin:0;font-size:30px;font-weight:900;letter-spacing:-1.2px;color:var(--green)}
+#title p{margin:8px 0 12px;font-size:14px;color:#5b6b63;font-weight:500}
+.chip{display:inline-block;background:rgba(46,94,78,.9);color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px}
+#title .foot{margin-top:auto;width:100%;max-width:520px;padding:0 20px calc(env(safe-area-inset-bottom) + 26px);pointer-events:auto}
+.hide{opacity:0;pointer-events:none!important}
+.hide *{pointer-events:none!important}
+
+.btn{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:800;border-radius:999px;height:50px;padding:0 20px;font-size:16px;
+  transition:transform .08s,box-shadow .08s;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.btn.primary{width:100%;background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d)}
+.btn.primary:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
+.btn.ghost{background:#fff;color:var(--green);border:1.5px solid rgba(46,94,78,.25);height:44px;font-size:14px;font-weight:700}
+.btn.ghost:active{background:var(--sage)}
+
+.panel{position:fixed;left:50%;bottom:0;width:100%;max-width:520px;transform:translate(-50%,115%);
+  padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);background:rgba(255,255,255,.86);backdrop-filter:blur(16px);
+  border-radius:26px 26px 0 0;box-shadow:0 -10px 34px rgba(46,94,78,.14);transition:transform .5s cubic-bezier(.2,.9,.25,1)}
+.panel.show{transform:translate(-50%,0)}
+.pt{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:800;margin-bottom:12px}
+.pt b{color:var(--green);font-size:15px}
+.btnrow{display:flex;gap:8px}
+.btnrow>*{flex:1}
+
+.spin{position:fixed;top:42%;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:var(--green);font-size:16px;
+  box-shadow:0 2px 10px rgba(46,94,78,.18);cursor:pointer;transition:opacity .3s;z-index:3}
+#spinL{left:12px}#spinR{right:12px}
+
+#toast{position:fixed;left:50%;top:64px;transform:translate(-50%,-10px);background:rgba(38,41,41,.88);color:#fff;font-size:13px;font-weight:600;
+  padding:9px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;width:max-content;max-width:88vw;text-align:center;z-index:9}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--cream);font-weight:800;color:var(--green);z-index:20;transition:opacity .5s}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="loading">낼나 연필 깎는 중…</div>
+<button class="iconbtn" id="soundBtn" aria-label="소리 켜기/끄기">🔊</button>
+<button class="spin hide" id="spinL" aria-label="왼쪽으로 돌리기">◀</button>
+<button class="spin hide" id="spinR" aria-label="오른쪽으로 돌리기">▶</button>
+
+<section id="title">
+  <div class="head">
+    <img class="logo" id="titleLogo" alt="nelna.">
+    <h1>낼나펜슬 말랑이</h1>
+    <p>낼나 펜슬을 꾹 눌러서 말랑 말랑 만져보세요</p>
+    <span class="chip">🎧 이어폰으로 들으면 더 시원해요</span>
+  </div>
+  <div class="foot"><button class="btn primary" id="startBtn">만져보기</button></div>
+</section>
+
+<section class="panel" id="pp">
+  <div class="pt"><span id="hintTxt">🤏 꾹 눌렀다가, 쓱 주물러보세요</span><span>말랑 <b id="cnt">0</b>번</span></div>
+  <div class="btnrow">
+    <button class="btn ghost" id="saveBtn">📷 이미지 저장</button>
+    <a class="btn ghost" id="shopLink" href="https://nelna.shop" target="_blank" rel="noopener">낼나샵 구경하기</a>
+  </div>
+</section>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const PI=Math.PI, clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const LOGO_URI='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAACXBIWXMAAAsSAAALEgHS3X78AAAWyklEQVR4nO3d33HbZr7HYfLM3jtbgb0VRNsAI1dg5453cSqIU0GcCtapwPKd7qJUEEkNrF3BsStYuwKewZ4fE0aUZP7B36+eZ0aTRPJENEjgA7wAXsxXq9UMAJi2//H+AcD0CToABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0AAjwN28iHGe+XHw1m81OBlyMn1bn1++2vgs8KPPVauUdhyPMl4uL2Wz2bOBl+E9Rh4fNkDsc76sRLMMxvAZgQIIOAAEEHQACCDoABBB0AAgg6AAQQNABIICgA0AAQQeAAIIOAAEEHQACCDoABBB0ON6ZZQgMTdDhSKvz67PV+fV8Npv9fTabfT+bzT5apkDfBB1asjq/bp5LflbPRn9vuQJ9EnRoWRP22Wx2OpvNPlu2QF8EHTpQUX9t2QJ9+Zsl3Y/5cvFVHbWd1D8bzfe+rn+/qn9+qK/L1fn1ZeryeCCa9++nh74QujBfLp7UevRkY31q/v1xjYy8q+99qH9/Z30i3Xy1WnmTO1IRf1FfXx/4W36bzWYXdW6WiZkvF32tYE/Tg1URb9al5weuT03oL2p9utj6KUzcZII+Xy7WYRzSy9X59bsv/f7a8LyazWbfbf3wcJ9rCPd1DedGmS8XpzVicVJ/ryf1dZv1KMasjr4+1RHY6JbLWIM+Xy5ebyzrITTv1Ytd3rP6bLyczWbPtn54uOZOhFcJO8rz5eKk1p3ZxmjF2ld7vM+fNkY2ZmNft9g2paCP4YVerc6vb64wf6gj8ibkP2z9sD2fa8dishui2kCvTz+c1DBpG9ZDrZdjOWUx4qCPYX36eXV+/Wrru6XWp9ct7xjf9LF2LEY9ulHL4mTjNEPz9c3WH+zW1fr0Ra1fH3r+/XyBc+gtqUidtRinuzyazWZvasTi+RT2nGtj9Ly+Tuvv0IVHtZFrvn6aLxez9SmLGmZ1lDER8+Xiea1PXX1W1pr19ff5cvG2dpRH8xmpbcp6nTn0lF2bvtnciZgvFx9r3TrbZeSS7rnKvQXz5aIZDvy9h5hvalasDzXcNkrNRnm+XDQr/H+anZAaMu16A33Ts/rd/2leS4WCEavTAb/2/FlpRgEuh16fap05my8Xn2qb8sNIYn6bx/X6/j1fLj7UQQYDcoR+pGbl63hI8D6PamX6fixD8BtH46963sHZRRP3Z3VkEXH+NElPQ+z3+bqiftrnEWf9vV/WNUJjW2d29bhGDl9Zt4bjCP0IA8d805sx7B3XSMWHOiIe84ZpvfFxVDEulyNYnx71eaReAfxQtzdONeab1uvWZV0cTI8E/UA1LDiGmK+9GWq4sDmiaeI4m83+NcCQ+jE2Nz6jPXXxENTO8ViGljuPenNUPl8u3lXIp7TO7Ko5JfjOKa5+CfoB6kPa5ZXsh+p1r7g2ShcDXD/Qtm/q1MWdV1zTnVruY9o5nlVkz2o4vFX1/7wc8bnxtjTL8FejYP0R9P082bj6dowe9fXa6grcDy3fGzy0n+povfWNOLc6qfVprLPpfd3R9L0PIeabRnFK8CEQ9P08HuDq2319U+eyO7NxVX/yUKEh+O49q/VpzL6rnddW1GjEQ4r52ps2lyO3E/RMr7o6yqxznf/a+kGWx2O4hYnRaHPUq9Od7ZHr5BQGfxL0TI+62HCM6Kr+PvR6tTOj9riNIeM6vdD1qFYzW2IzSc7P9fV04+vb+t5vAz3a93HdzkpH3Ifenvc17/HJSIaiXzZX4rc189UDi/naOupPzDLXu/XTB8eyPr1q4Ui9j53DL91D/8dDaWonpe/5In6o7ZJpYzswpSP091vfGV6z0fl2dX49X51fnzTzvK/Or5shpb/X3vDbAV/ho5rg5WgDxbx5v3+so4u/19fT+t7V1p/uzqO6iCnNEEdoX7K5Pp3eWJ++7/l9v+lxC7dgdX4O+Qsxv/lnmylbm7tiftn6YbccpXdkSg9nWT+cYP384z6Gr+7z4+r8+otXwNZtZGcDPEih8b7Z0dj67h5qL/5Nj6/5cz0s497HW/Y4d/7avQ8SucuIH87yZOMhH6cjGH3ZabbDet9fD3Rh2dvV+fXBQ+/NHRRdbweanaGtb+6gLtbr626DZh036tWByT4PvTZIFwOt2DvFfFNdGT7ExWT/OHR4q84fX/a44/R5hyHDPwxwP+8/950SdCrPQ6/3eqjJXfaeunigUaPPNWJwkJqzocvbPO99GuSX9PD6No1muuokk70oriJ1OsBQ/NW+MZ/9/+t9XcOGfTtmmK+Pp11ter7nkOGnnp+R38U9yaNQy/10gKH4Xw7ZsNeRct+ntB4deetV1/PDH3teus8r8M0g14FJX+VeG/S+bwM5+PxPbbj6Pl910JD7APfLvj3kCLNC9PPWD7rxTfIEGRNcn17UFdt9OuYU1r2nkVpw1P+/DpL62klyT3oHJn/bWkXg49YPuvHxmGHNer0ve3y9s0M2QBtPf+rTMRfK9HnknH5BT9fR2XTVwnnUFz2PKhwc9Nr57Grd//il60521Nf7/8gtoe1LuQ+9r1sg2vo9fUbhkJXmZc9D7e+PuY2lotDXkdrj5Bmvaln2dRrr6LsH6vX2uUN37LMSutpRbmXkqKWdgl0JestMLDOAGnrv6yh9rzAPdHQ+pSOLWc/n7YcwtauPJ3NtQwWz7WHt748dObyhr9sDPV61ZYI+nD4DtI8XA9wO2MbFQn1OVOGCnhGpo/S+InT0bWd17r+Na2k+d3S1eF/rkiP0lpkpbjhdX/F6qCGOPl/Pl4tjjwr7PEprzv8973l4kvt1fo93m5praeo2sVcHvu7mKP9VRzOu9RV087q3TNCHM7qpD+ve/iHuQ35cT2+bkpMRj7I8RJObSrSGyU/r4rAX9Zm6K+4f6yCg+cxdmJSF2wg6mwwl785tN+My2bnB6+r3MT2Fra+hcEPuLRN0NonU7myMGMTGtL2zO9bZkyOGs7/qcZRuDA/diSLobLpt48DtbIzoXN0iebrxHIshTokxEYLOf9XtaiK1h+bc575zu8N96uj7eX3ddT4dbiXorBlC3p+rdGlFTSn8QsQ5hqADDKRC/qrHxwATTNBZc4QOPamh9TNH5LTJTHGsGT6GHtRR+Tsxp22O0AF6UjF/Y3nTBUfocJjPLT8Qg3BiTtccobM21O1XH+tc4tRM5glfDK+mdx0q5lc1k956Nr0Pt8yst56spjn19sPW/4FJEHTWhpob+sPq/LrP58PDEPqe9/9jXT2/97zvNSfFd1s/YPQEnTUPe4AO1FB7n7el/bg6vz5mBGmy8+I/dM6h819mPIPO9DkCdWzMmTBH6Gx6P8Bc0U+2vtOCOmf5qqPb8c5W59dTPO9Pz+pz2NfR+ZWYP2yCzqZ3AwS9q43d6w7v8z2Z6IV89O9Fj7/RZ/IWN55Ot6m5fifq9IKgs+liiIthOnrIiZnvGIM+P4duoyzz5eJ57Uyd3vfQqfly8bGW2+uE047OobNpqA1Cq49trWHOO1fiFvR9xTLT1VvQ0442D9FcgDhfLprl8OtsNnu2w3bgcR3E/Hu+XFzW42onS9D5Q93e8tsAS6TtlajrlVLQ2ZVHEvegudWuCXLd63/oabzmFN3v8+VistchCDo3DXEe7rTufW1Ll+ctmxniBJ3RqXPFD06NyLU5N/4PdbQ+uedbCDp/UbH62PNSaY5inm999wC1cnd5YZ+riBmrPi/AG4WK7lkHF9d+M8WLDAX9AThgT3OImdva+p1dv/adV/IJHzF58t40vUw5Sp8vF+/my8Wqvu67WO2swx34Z/Pl4uXWd0csJeh9fYinuqHb65xy3WN9tfWDbj2eLxdHxbguaHm29YP2vN3zwqM+r3Bu5XfVzl9fty62uXx6W9Z7RrPP0a5mpOtiikPFm2o93vwM3vp57GF9b7ya0vKcfNDrTe1r4oavW7wKss+N/SHD2UPsmf506PKtofYuz21/PmCZ9LkM2/pdrZz62NGzFo8o+zwy3Wdo+76jyy408ftQt20dqrdlWdPibv73kz1GwfpYvx5N6VTGpIO+cf6kT69b2mPrc2P/3c0V50vqnsyfv/DHunCx78aoYn7Z8RXFr/Z5yEUt764mtrnN42OHB2tj2vc1Akf/vlof+9zo/lSfuV0McStosx78WsPWL3bdXjXr3Xy5OOt5Loo3zVXl9Tpf1w7QrgdoXR+dr/W5k3uU+Wq1mspr/Yva+FzcNRzTsWaK1OeH3vc5wEqztvc8z/Pl4qLHFWfT24roncu4NlRNxH7a+mG7mik1dx45qLD+a+sH/fj5kKfX1cjIxUC3WTW3Sr7Y96lgsz8/A5cDbAc+1zbg3mDXdup/t37Qv/cVy5vr02mdShxiO7qrrfWvdqj+3dPvb+5smcSw+2SCXm/gek/pZKDI3PR2YwW5uG+moTrqPKkjiT6fvHTT+vnj73a5/WrADeba+wrNp9ogradx7Osz0Cyvky/FZuPzOfT7O6vXfFFTW966A3djfTrteTThNp/Xr7l+9vq+ZV47TU9qeQ95r/f683nn+jTgDnyKrZ3U2gH9va+/3+r8er71zRGaUtA/jXyShjv34nrem9zHP+/bCVkbQdSH0kTmdMdlNNbP5y+r8+utofgJrE+/rc6vbx3qHHgE5D63rk91lP7OJDMH+8fNkTpBv92UzqGPfWW47/XdGvoR2Ol11ZHSaR2NPBQ7x3yH939Id53rHfv6dN9n876fDenW11UxGuJW0ARXd5x26/Niw8ls99yHzk42ov72ASyxfWMO96pTHw9h3WnbrRc71vaor1sCJ7MdEHR21qxEq/PrZgX7saKX6H2dMxdzWlXrjqjv7sc7js7X+rrDaTIzxgk6e6ujjZMBJp/pWnO++eQLGxE4WEV9iNtBp+btXRd0bnjdw4HF1ZfuZBgTQecgTfTqVpJvB5j7vW1XdUHT1sVj0La6YvtpwHrTlbe143OvGnbv9EFMU5sfX9A5SnOrzur8urmK9/sJbqCa1/t9s2NiiJ0+NUd9td78PMLTVx9rfX5a/+zz9f24S8zX6lbBrkY8Dp5rZCiCTiua+d9rA/V0AucJm4lMvm1eb81bD4Ooo/Wx7BCvd3Cf1Pp8WetHH6fX3tco2d4zB9YybK7raUuzA/N0SkPta3/b+g4coVaCy7pX+HldGf98BLdJXdUEIBfOkTMmNXTchPOs5qx4UetMXxMUNevG2V07t7W+nNa9369anoToY80Ieevv3lWzI1BPZTv2UapXNWvhJLcRgk4nNjdSsz8n1zmtvf2un1n+uW41uVz/875Zx2As6tTPy41HoW6uM22GdO8d3NpZP21hp2M9K+BZm0fB9f96Us9ReLnnNua3mp1wckflm6YU9Pcjn6nsvskHxhqT3l5Xbaj+cp66NgxfbTze9ckdT3pab8huG/Z7V3+P9dSwHwbaux7r5/OuI5/PI59c5r7P5hivd/h8yzzpR6nP8V/ev4r8eurjr+rrrsmDNq3ncX93bLRu7HScbOxwrF/Hem74jxvLZP37L7u+XqWO9s9uHETctl15t7HDHzFqN9mHswAAf3JRHAAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AFg6maz2f8BEgSE/a9yYFgAAAAASUVORK5CYII=';
+const S={stage:'title',sound:true,count:0};
+
+/* ---------- 소리 (WebAudio 합성) ---------- */
+const Sound={
+  ctx:null,master:null,noise:null,
+  init(){
+    if(this.ctx)return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
+    this.ctx=new AC(); this.master=this.ctx.createGain(); this.master.gain.value=S.sound?.9:0; this.master.connect(this.ctx.destination);
+    const n=this.ctx.sampleRate; this.noise=this.ctx.createBuffer(1,n,n); const d=this.noise.getChannelData(0); for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  },
+  resume(){this.init(); if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
+  setOn(v){S.sound=v; if(this.master)this.master.gain.value=v?.9:0;},
+  burst(t,power,fMin,fMax,len){ // 아주 짧은 잡음 한 번 = 기포 하나
+    const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise;src.playbackRate.value=.8+Math.random()*.7;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fMin+Math.random()*(fMax-fMin);bp.Q.value=1.5+Math.random()*2;
+    const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(power,t+.002);g.gain.exponentialRampToValueAtTime(.001,t+len);
+    src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t,Math.random()*.6);src.stop(t+len+.03);
+  },
+  tone(f0,f1,len,gain,type){
+    const c=this.ctx,t=c.currentTime,o=c.createOscillator(); o.type=type||'sine';
+    o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+len);
+    const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(.001,t+len+.04);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t+len+.06);
+  },
+  hiss(len,freq,gain){ // 말랑한 "찌익" 질감
+    const c=this.ctx,t=c.currentTime,src=c.createBufferSource(); src.buffer=this.noise; src.playbackRate.value=.7+Math.random()*.5;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(freq,t); lp.frequency.exponentialRampToValueAtTime(freq*.4,t+len);
+    const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(.001,t+len);
+    src.connect(lp); lp.connect(g); g.connect(this.master); src.start(t,Math.random()*.5); src.stop(t+len+.02);
+  },
+  // 스펀지 소리: 공기 섞인 "쓰으읍" + 기포(스펀지 구멍)가 톡톡 터지는 소리
+  sweep(len,f0,f1,gain,q,delay){ // 필터가 움직이는 공기 소리
+    const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=this.noise;src.playbackRate.value=.8+Math.random()*.4;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=q;bp.frequency.setValueAtTime(f0,t);bp.frequency.exponentialRampToValueAtTime(f1,t+len);
+    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+len*.25);g.gain.exponentialRampToValueAtTime(.001,t+len);
+    src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t,Math.random()*.5);src.stop(t+len+.03);
+  },
+  cells(n,span,gain,fMin,fMax){ // 스펀지 속 작은 기포 터짐
+    const t=this.ctx.currentTime;
+    for(let i=0;i<n;i++){const tt=t+Math.random()*span;this.burst(tt,gain*(.4+Math.random()*.6),fMin,fMax,.008+Math.random()*.014);}
+  },
+  squish(){ if(!this.ctx||!S.sound)return; const r=.9+Math.random()*.25;
+    this.sweep(.34,900*r,260*r,.3,.9);               // 공기가 빠지는 소리
+    this.sweep(.2,2400*r,1200*r,.07,1.6);            // 윗부분 바스락
+    this.cells(14,.28,.22,1600,5200);                // 기포 톡톡
+    this.tone(150*r,78*r,.12,.1);                    // 부드러운 눌림
+  },
+  release(){ if(!this.ctx||!S.sound)return; const r=.9+Math.random()*.25;
+    this.sweep(.42,320*r,1000*r,.2,.9);              // 공기를 다시 빨아들이며 부푸는 소리
+    this.cells(9,.45,.12,2200,6500);                 // 부풀며 기포가 작게 터짐
+  },
+  drag(){ if(!this.ctx||!S.sound)return;
+    this.sweep(.1,1100,800,.09,1.1);this.cells(3,.1,.12,1800,4800);
+  },
+  pop(){ if(!this.ctx||!S.sound)return; this.tone(620,1100,.07,.25); },
+};
+try{ if(localStorage.getItem('waxball_sound')==='0'){S.sound=false;$('#soundBtn').textContent='🔇';} }catch(e){}
+
+/* ---------- 장면 ---------- */
+const canvas=$('#gl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,.1,100);
+(function(){
+  const pm=new THREE.PMREMGenerator(renderer),env=new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.SphereGeometry(20,32,16),new THREE.MeshBasicMaterial({color:0xd8ccb0,side:THREE.BackSide})));
+  const box=(w,h,x,y,z,v)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
+    m.material.color.setScalar(v);m.position.set(x,y,z);m.lookAt(0,0,0);env.add(m);};
+  box(16,9,0,12,8,4.5);box(5,14,-12,2,5,3.2);box(5,14,12,2,3,2.2);box(14,6,0,-8,6,1.6);
+  scene.environment=pm.fromScene(env,.03).texture; pm.dispose();
+})();
+scene.add(new THREE.HemisphereLight(0xffffff,0xe2d7bd,.22));
+const sun=new THREE.DirectionalLight(0xffffff,.5);sun.position.set(3,6,6);scene.add(sun);
+const rim=new THREE.DirectionalLight(0xfff0d0,.22);rim.position.set(-5,2,-4);scene.add(rim);
+
+/* ---------- 연필 형태 ---------- */
+const prof=[];{
+  const add=(r,y,sec)=>prof.push({r,y,sec});
+  for(let i=0;i<=24;i++){const a=i/24*PI/2;add(.955*Math.sin(a),.55*(1-Math.cos(a)),'eraser');}
+  for(let i=1;i<=48;i++){const t=i/48;add(.955+.065*(.5-.5*Math.cos(t*PI*2*4)),.55+.75*t,'ferrule');}
+  for(let i=1;i<=44;i++)add(.98,1.3+(3.65-1.3)*i/44,'body');
+  for(let i=1;i<=16;i++){const a=i/16*PI/2;add(.83+.15*Math.cos(a),3.65+.30*Math.sin(a),'body');}
+  for(let i=1;i<=24;i++){const t=i/24;add(.83-.45*t+.03*Math.sin(PI*t),3.95+.75*t,'cone');}
+  for(let i=1;i<=16;i++){const a=i/16*PI/2;add(.38*Math.cos(a),4.7+.42*Math.sin(a),'tip');}
+}
+const H=prof[prof.length-1].y,HC=H/2;
+prof.forEach((p,i)=>{
+  const a=prof[Math.max(0,i-1)],b=prof[Math.min(prof.length-1,i+1)],tr=b.r-a.r,ty=b.y-a.y,l=Math.hypot(tr,ty)||1;p.nr=ty/l;p.ny=-tr/l;
+});
+prof[0].nr=0;prof[0].ny=-1;prof[prof.length-1].nr=0;prof[prof.length-1].ny=1;
+const secRange=n=>{const f=prof.findIndex(p=>p.sec===n),l=prof.map(p=>p.sec).lastIndexOf(n);return[Math.max(0,f-1),l];};
+function revolve(i0,i1,seg,uvFn){
+  const pos=[],nor=[],uv=[],idx=[];
+  for(let i=i0;i<=i1;i++)for(let j=0;j<=seg;j++){
+    const th=j/seg*PI*2,s=Math.sin(th),c=Math.cos(th),P=prof[i];
+    pos.push(-P.r*s,P.y-HC,-P.r*c);nor.push(-P.nr*s,P.ny,-P.nr*c);uv.push(j/seg,uvFn(P));
+  }
+  const row=seg+1;
+  for(let i=0;i<i1-i0;i++)for(let j=0;j<seg;j++){const a=i*row+j,b=a+1,c=a+row,d=c+1;idx.push(a,b,c,b,d,c);}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);return g;
+}
+
+/* ---------- 몸통: 낼나 그린 + 로고 ---------- */
+const TW=1536,TH=668,BODY_Y0=1.3,BODY_Y1=3.95,BODY_COLOR='#1E6B36',LOGO_COLOR='#EDC453';
+const texCanvas=document.createElement('canvas');texCanvas.width=TW;texCanvas.height=TH;
+const tctx=texCanvas.getContext('2d');
+const bodyTex=new THREE.CanvasTexture(texCanvas);bodyTex.anisotropy=8;
+function compose(logo){
+  tctx.fillStyle=BODY_COLOR;tctx.fillRect(0,0,TW,TH);
+  if(logo){
+    const b=logo.box,c=document.createElement('canvas');c.width=b.w;c.height=b.h;const g=c.getContext('2d');
+    g.drawImage(logo.img,b.x,b.y,b.w,b.h,0,0,b.w,b.h);g.globalCompositeOperation='source-in';g.fillStyle=LOGO_COLOR;g.fillRect(0,0,b.w,b.h);
+    const len=1.63*250,th=len*b.h/b.w;
+    tctx.save();tctx.translate(TW*.5,TH*(1-.34));tctx.rotate(-PI/2);tctx.drawImage(c,-len/2,-th/2,len,th);tctx.restore();
+  }
+  bodyTex.needsUpdate=true;
+}
+compose(null);
+$('#titleLogo').src=LOGO_URI;
+(function(){
+  const im=new Image();
+  im.onload=()=>{
+    let box={x:42,y:196,w:416,h:83}; // 로고 영역 기본값
+    try{
+      const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0);
+      const d=g.getImageData(0,0,c.width,c.height).data;let x0=1e9,y0=1e9,x1=-1,y1=-1;
+      for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+      if(x1>0)box={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
+      const o=document.createElement('canvas');o.width=box.w;o.height=box.h;o.getContext('2d').drawImage(im,box.x,box.y,box.w,box.h,0,0,box.w,box.h);
+      $('#titleLogo').src=o.toDataURL();
+    }catch(e){}
+    compose({img:im,box});
+  };
+  im.src=LOGO_URI;
+})();
+
+const pencil=new THREE.Group();scene.add(pencil);
+const mats={
+  eraser:new THREE.MeshStandardMaterial({color:0xE5485D,roughness:.62,envMapIntensity:.35}),
+  ferrule:new THREE.MeshStandardMaterial({color:0xC4C8CE,metalness:.9,roughness:.28,envMapIntensity:.9}),
+  body:new THREE.MeshStandardMaterial({map:bodyTex,roughness:.6,envMapIntensity:.3}),
+  cone:new THREE.MeshStandardMaterial({color:0xF7F0DF,roughness:.82,envMapIntensity:.3}),
+  tip:new THREE.MeshStandardMaterial({color:0x2B2B2B,roughness:.5,envMapIntensity:.25}),
+};
+/* 말랑이 변형: 손가락이 누른 자리가 넓고 부드럽게 눌리고, 둘레가 부풀고, 문지르면 반죽처럼 끌려가요 (GPU 계산) */
+const NDENT=6,SQ_R=.76,SQ_MAX=.44;
+const sqP=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 눌린 중심, w 깊이
+const sqD=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 누르는 방향
+const sqS=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 끌림(쉬어)
+Object.values(mats).forEach(m=>{
+  m.onBeforeCompile=sh=>{
+    sh.uniforms.uSqP={value:sqP};sh.uniforms.uSqD={value:sqD};sh.uniforms.uSqS={value:sqS};
+    sh.vertexShader=sh.vertexShader
+      .replace('#include <common>',`#include <common>
+        uniform vec4 uSqP[${NDENT}];uniform vec4 uSqD[${NDENT}];uniform vec4 uSqS[${NDENT}];
+        vec3 squishDisp(vec3 pp,vec3 nn){
+          vec3 d=vec3(0.0);
+          for(int i=0;i<${NDENT};i++){
+            float dp=uSqP[i].w;
+            if(dp>0.0005){
+              vec3 dir=uSqD[i].xyz; vec3 v=pp-uSqP[i].xyz;
+              float al=dot(v,dir); vec3 lat=v-dir*al; float r=length(lat);
+              float R=${SQ_R.toFixed(3)};
+              float w=exp(-(r*r)/(R*R)*1.3);
+              float front=smoothstep(-0.2,0.6,-dot(nn,dir));
+              d+=dir*dp*w*front;                                   // 손가락 쪽이 쑥 눌림
+              d+=uSqS[i].xyz*w*front;                              // 문지르면 끌려감
+              if(r>0.0001) d+=(lat/r)*dp*0.46*(r/R)*exp(-(r*r)/(R*R)*0.9); // 눌린 만큼 둘레로 부풀음
+            }
+          }
+          return d;
+        }`)
+      .replace('#include <beginnormal_vertex>',`#include <beginnormal_vertex>
+        vec3 sqn=normalize(normal);
+        vec3 sqh=abs(sqn.y)>0.9?vec3(1.0,0.0,0.0):vec3(0.0,1.0,0.0);
+        vec3 sqt1=normalize(cross(sqn,sqh)); vec3 sqt2=cross(sqn,sqt1);
+        float sqe=0.03;
+        vec3 sqd0=squishDisp(position,sqn);
+        vec3 sqe1=sqt1*sqe+(squishDisp(position+sqt1*sqe,sqn)-sqd0);
+        vec3 sqe2=sqt2*sqe+(squishDisp(position+sqt2*sqe,sqn)-sqd0);
+        vec3 sqnn=normalize(cross(sqe1,sqe2)); if(dot(sqnn,sqn)<0.0) sqnn=-sqnn;
+        objectNormal=sqnn;`)
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n transformed += sqd0;');
+  };
+});
+const pencilMeshes=['eraser','ferrule','body','cone','tip'].map(sec=>{
+  const [a,b]=secRange(sec);
+  const m=new THREE.Mesh(revolve(a,b,112,P=>clamp((P.y-BODY_Y0)/(BODY_Y1-BODY_Y0),0,1)),mats[sec]);pencil.add(m);return m;
+});
+
+const shadowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(40,60,40,.55)');gr.addColorStop(1,'rgba(40,60,40,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));
+shadow.rotation.x=-PI/2;shadow.position.y=-HC-.02;shadow.scale.setScalar(1.9);scene.add(shadow);
+
+/* ---------- 카메라 ---------- */
+const cur={panelH:130,topPad:200,target:130};
+const VIS_H=6.5,VIS_W=3.2;
+function updateCamera(W=innerWidth,Hh=innerHeight,vh=VIS_H,vw=VIS_W,panelH=cur.panelH,topPad=cur.topPad){
+  const asp=W/Hh,availH=Math.max(160,Hh-panelH-topPad),th=Math.tan(camera.fov*PI/360);
+  const D=Math.max(vh*(Hh/availH)/(2*th),vw/(2*th*asp));
+  camera.aspect=asp;camera.position.set(0,D*.14,D);camera.lookAt(0,0,0);
+  camera.setViewOffset(W,Hh,0,(panelH-topPad)/2,W,Hh);
+}
+function resize(){renderer.setSize(innerWidth,innerHeight,false);}
+addEventListener('resize',resize);resize();
+
+/* ---------- 입력: 꾹 누르기 = 말랑, 빈 곳 드래그 = 돌리기 ---------- */
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
+const ptr={down:false,mode:null,lx:0};
+const sq={x:0,pressed:false};         // 전체가 살짝 눌리는 정도 (튕김 없이 부드럽게)
+const dents=[];let heldDent=null;     // 손가락이 누른 자리들 (최대 6개, 놓으면 천천히 올라옴)
+const _inv=new THREE.Matrix4();
+function localDir(){return ray.ray.direction.clone().transformDirection(_inv.copy(pencil.matrixWorld).invert());}
+function addDent(hit){
+  if(dents.length>=NDENT)dents.shift();
+  const p=pencil.worldToLocal(hit.point.clone());
+  const d={p,q:p.clone(),dir:localDir(),e:0,held:true};dents.push(d);return d;
+}
+let rotY=0,spinV=0,settle=false,tAll=0;
+function hitPencil(e){
+  const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,camera);
+  return ray.intersectObjects(pencilMeshes,false)[0]||null;
+}
+const MILESTONE={10:'말랑말랑 💚',30:'손맛 좋네요 ✨',60:'이쯤 되면 중독 🍀',100:'100번! 말랑이 장인 ✏️'};
+let toastT=0;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
+
+canvas.addEventListener('pointerdown',e=>{
+  Sound.resume();try{canvas.setPointerCapture(e.pointerId);}catch(err){}
+  ptr.down=true;ptr.lx=e.clientX;ptr.mode='spin';spinV=0;settle=false;
+  const hit=S.stage==='play'?hitPencil(e):null;
+  if(hit){
+    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}if(navigator.vibrate)navigator.vibrate(10);
+    S.count++;$('#cnt').textContent=S.count;if(MILESTONE[S.count])toast(MILESTONE[S.count]);
+  }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!ptr.down)return;
+  const dx=e.clientX-ptr.lx;ptr.lx=e.clientX;
+  if(ptr.mode==='spin'){rotY+=dx*.012;spinV=dx*.012*60*.6;}
+  else if(ptr.mode==='squish'){ // 문지르면 손가락을 따라 반죽처럼 주물러져요
+    const hit=hitPencil(e);
+    if(hit&&heldDent){
+      const lp=pencil.worldToLocal(hit.point.clone());
+      if(lp.distanceTo(heldDent.p)>.22)try{Sound.drag();}catch(err){}
+      heldDent.p.copy(lp);heldDent.dir.copy(localDir());
+    }
+  }
+});
+function release(){
+  if(ptr.mode==='squish'){sq.pressed=false;if(heldDent){heldDent.held=false;heldDent=null;}try{Sound.release();}catch(err){}}
+  ptr.down=false;ptr.mode=null;
+}
+canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
+[['#spinL',-1],['#spinR',1]].forEach(([id,d])=>$(id).addEventListener('click',()=>{Sound.resume();spinV+=d*7;settle=false;}));
+
+/* ---------- 화면 ---------- */
+function go(st){
+  S.stage=st;
+  $('#title').classList.toggle('hide',st!=='title');
+  ['#spinL','#spinR'].forEach(s=>$(s).classList.toggle('hide',st==='title'));
+  $('#pp').classList.toggle('show',st==='play');
+  if(st==='play'){
+    rotY=((rotY%(2*PI))+2*PI)%(2*PI);if(rotY>PI)rotY-=2*PI;settle=true; // 로고가 정면으로 오게
+    setTimeout(()=>{cur.target=$('#pp').offsetHeight;},60);cur.target=$('#pp').offsetHeight||130;
+    toast('펜슬을 꾹 눌러보세요');
+  }
+}
+$('#startBtn').onclick=()=>{Sound.resume();Sound.pop();go('play');};
+$('#soundBtn').onclick=()=>{Sound.resume();Sound.setOn(!S.sound);$('#soundBtn').textContent=S.sound?'🔊':'🔇';try{localStorage.setItem('waxball_sound',S.sound?'1':'0');}catch(e){}};
+
+/* ---------- 이미지 저장 ---------- */
+$('#saveBtn').onclick=()=>{
+  const W=1080,Hh=1350;
+  renderer.setPixelRatio(1);renderer.setSize(W,Hh,false);
+  updateCamera(W,Hh,6.9,3.4,0,0);renderer.render(scene,camera);
+  const url=canvas.toDataURL('image/png');
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));resize();
+  const img=new Image();img.onload=()=>{
+    const c=document.createElement('canvas');c.width=W;c.height=Hh;const g=c.getContext('2d');
+    const bg=g.createRadialGradient(W/2,Hh*.3,60,W/2,Hh*.4,Hh*.8);bg.addColorStop(0,'#FFFDF8');bg.addColorStop(.5,'#FEF8F0');bg.addColorStop(1,'#E7F1DF');
+    g.fillStyle=bg;g.fillRect(0,0,W,Hh);g.drawImage(img,0,60,W,Hh-60);
+    g.textAlign='center';g.fillStyle='#2E5E4E';g.font='900 64px Pretendard,sans-serif';g.fillText('낼나펜슬 말랑이',W/2,130);
+    g.font='600 30px Pretendard,sans-serif';g.fillStyle='#6b7a72';g.fillText('nelna.shop',W/2,Hh-60);
+    const a=document.createElement('a');a.download='nelna-pencil-malrang.png';a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+    toast('이미지를 저장했어요 📷');
+  };img.src=url;
+};
+
+/* ---------- 매 프레임 ---------- */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;tAll+=dt;
+  const k=1-Math.exp(-dt*7);
+  cur.panelH+=((S.stage==='title'?130:cur.target)-cur.panelH)*k;
+  cur.topPad+=((S.stage==='title'?200:54)-cur.topPad)*k;
+
+  if(!(ptr.down&&ptr.mode==='spin')){rotY+=spinV*dt;spinV*=Math.exp(-dt*2.6);}
+  if(S.stage==='title')rotY+=.5*dt;
+  if(settle&&Math.abs(spinV)<.05)rotY+=(0-rotY)*(1-Math.exp(-dt*3));
+
+  // 전체 눌림: 튕기지 않고 부드럽게 들어갔다 천천히 돌아옴
+  sq.x+=((sq.pressed?1:0)-sq.x)*(1-Math.exp(-dt*(sq.pressed?9:3.5)));
+  const sy=1-.04*sq.x,sxz=1+.02*sq.x;
+  pencil.scale.set(sxz,sy,sxz);
+  pencil.position.set(0,-HC*(1-sy)+(S.stage==='title'?Math.sin(tAll*1.6)*.07:0),0);
+  pencil.rotation.set(0,rotY,S.stage==='title'?Math.sin(tAll*1.1)*.05:0);
+  shadow.scale.set(1.9*(1+.05*sq.x),1.9*(1+.05*sq.x),1);
+
+  // 말랑이 변형: 누르는 동안 부드럽게 깊어지고, 놓으면 쫀득하게 천천히 올라와요 (튕김 없음)
+  for(let i=dents.length-1;i>=0;i--){
+    const d=dents[i];
+    d.q.lerp(d.p,1-Math.exp(-dt*8));                         // 누른 자리가 손가락을 살짝 늦게 따라감 = 끌리는 느낌
+    if(d.held)d.e+=(SQ_MAX-d.e)*(1-Math.exp(-dt*5.5));
+    else d.e*=Math.exp(-dt*2.2);
+    if(!d.held&&d.e<.004){dents.splice(i,1);if(heldDent===d)heldDent=null;}
+  }
+  for(let i=0;i<NDENT;i++){
+    const d=dents[i];
+    if(d){sqP[i].set(d.q.x,d.q.y,d.q.z,d.e);sqD[i].set(d.dir.x,d.dir.y,d.dir.z,0);
+      const k=d.e/SQ_MAX*.62;sqS[i].set((d.p.x-d.q.x)*k,(d.p.y-d.q.y)*k,(d.p.z-d.q.z)*k,0);}
+    else sqP[i].set(0,0,0,0);
+  }
+
+  updateCamera();renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+$('#loading').style.opacity=0;setTimeout(()=>$('#loading').remove(),600);
+go('title');
+requestAnimationFrame(frame);
+window.waxball={S,go,dents,setRot:v=>{rotY=v;spinV=0;settle=false;}};
+})();
+</script>
+</body>
+</html>
