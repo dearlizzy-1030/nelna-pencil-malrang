@@ -94,77 +94,66 @@ const LOGO_URI='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t
 const S={stage:'title',sound:true,count:0};
 
 /* ---------- 소리 (WebAudio 합성) ----------
- * 스펀지 소리 = ① 공기가 빠지는 "쓰으읍" + ② 스펀지 구멍이 하나씩 무너지는 촘촘한 바스락(크래클) + ③ 낮은 눌림.
- * 크래클은 미리 만들어 둔 '작은 딱 소리 수백 개'를 눌리는 속도에 맞춰 틀어요. */
+ * 공기 빠지는 소리: 눌리는 순간 "쉬이익"(높은 음에서 점점 낮아짐) → 누르는 동안 계속 새다가 다 눌리면 잦아듦
+ * → 놓으면 공기를 다시 빨아들이는 소리(낮은 음에서 점점 높아짐). 눌리는 속도에 맞춰 크기가 변해요. */
 const Sound={
-  ctx:null,master:null,noise:null,dense:null,sparse:null,hold:null,
+  ctx:null,master:null,noise:null,hold:null,
   setup(ctx){
     this.ctx=ctx;
     this.master=ctx.createGain();this.master.gain.value=S.sound?.9:0;
-    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=11000;
     const comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.knee.value=14;comp.ratio.value=4;comp.attack.value=.003;comp.release.value=.15;
-    this.master.connect(lp);lp.connect(comp);comp.connect(ctx.destination);
-    const n=ctx.sampleRate;this.noise=ctx.createBuffer(1,n,n);const d=this.noise.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
-    this.dense=this.makeCrackle(650,2.4);this.sparse=this.makeCrackle(140,2.4);
+    this.master.connect(comp);comp.connect(ctx.destination);
+    const n=ctx.sampleRate*2;this.noise=ctx.createBuffer(1,n,ctx.sampleRate);const d=this.noise.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
   },
-  init(){
-    if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.setup(new AC());
-  },
+  init(){ if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.setup(new AC()); },
   resume(){this.init();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
   setOn(v){S.sound=v;if(this.master)this.master.gain.value=v?.9:0;},
-  makeCrackle(rate,dur){ // 작고 짧은 '딱' 소리(감쇠하는 공명음)를 무작위로 흩뿌려 만든 바스락 소리
-    const sr=this.ctx.sampleRate,n=Math.floor(sr*dur),buf=this.ctx.createBuffer(1,n,sr),d=buf.getChannelData(0),cnt=Math.floor(rate*dur);
-    for(let k=0;k<cnt;k++){
-      const st=Math.floor(Math.random()*n),f=1400+Math.random()*4800,dec=(1.2+Math.random()*3.2)/1000,amp=Math.pow(Math.random(),2.4)*.9+.06;
-      const len=Math.min(n-st,Math.floor(sr*dec*6));
-      for(let i=0;i<len;i++){const t=i/sr;d[st+i]+=amp*Math.sin(6.2832*f*t)*Math.exp(-t/dec);}
-    }
-    let mx=0;for(let i=0;i<n;i++)mx=Math.max(mx,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]/=(mx||1);
-    return buf;
-  },
   tone(f0,f1,len,gain,type,delay){
     const c=this.ctx,t=c.currentTime+(delay||0),o=c.createOscillator();o.type=type||'sine';
     o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+len);
     const g=c.createGain();g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+len+.04);
     o.connect(g);g.connect(this.master);o.start(t);o.stop(t+len+.06);
   },
-  sweep(len,f0,f1,gain,q,delay){ // 필터가 움직이는 공기 소리
-    const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=this.noise;src.playbackRate.value=.8+Math.random()*.4;
-    const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=q;bp.frequency.setValueAtTime(f0,t);bp.frequency.exponentialRampToValueAtTime(f1,t+len);
-    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+len*.2);g.gain.exponentialRampToValueAtTime(.001,t+len);
-    src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t,Math.random()*.5);src.stop(t+len+.03);
+  air(len,f0,f1,gain,q,delay){ // 공기 소리: 필터 중심이 f0→f1로 움직이는 매끈한 "쉬이"
+    const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=this.noise;
+    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=380;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=q||.75;bp.frequency.setValueAtTime(f0,t);bp.frequency.exponentialRampToValueAtTime(f1,t+len);
+    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+Math.min(.06,len*.15));g.gain.exponentialRampToValueAtTime(.0005,t+len);
+    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;lp.Q.value=.5;   // 날카로운 고음을 깎아 부드럽게
+    src.connect(hp);hp.connect(bp);bp.connect(lp);lp.connect(g);g.connect(this.master);src.start(t,Math.random()*1.2);src.stop(t+len+.05);
   },
-  crackle(buf,len,gain,rate,decayPow,delay){ // 크래클 한 조각 (처음 세게, 점점 잦아듦)
-    const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=buf;src.playbackRate.value=rate||1;
-    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;
-    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+.012);
-    g.gain.setTargetAtTime(.0001,t+.012,len/(decayPow||3));
-    src.connect(hp);hp.connect(g);g.connect(this.master);src.start(t,Math.random()*(buf.duration-len-.1));src.stop(t+len+.05);
+  squish(){ if(!this.ctx||!S.sound)return;const r=.94+Math.random()*.12;
+    this.air(.6,3400*r,880*r,.3,.75);            // 쉬이익 — 공기가 새어 나옴
+    this.air(.65,1300*r,400*r,.2,.7);            // 낮은 쉬이 (몸통)
+    this.tone(105*r,62*r,.14,.1);                // 푹 눌리는 느낌
   },
-  squish(){ if(!this.ctx||!S.sound)return;const r=.92+Math.random()*.16;
-    this.sweep(.3,2800*r,750*r,.2,.7);               // 공기가 훅 빠짐
-    this.sweep(.34,950*r,340*r,.15,.8);              // 낮은 공기 소리
-    this.crackle(this.dense,.4,.55,r,3.2);           // 스펀지 구멍이 와르르 무너지는 바스락
-    this.tone(125*r,68*r,.13,.12);                   // 부드러운 눌림
-  },
-  release(){ if(!this.ctx||!S.sound)return;const r=.92+Math.random()*.16;
-    this.sweep(.6,420*r,1700*r,.13,.8);              // 공기를 다시 빨아들이며 부풂
-    this.crackle(this.sparse,.55,.38,r*.9,2.2,.04);  // 부풀며 드문드문 톡톡
+  release(){ if(!this.ctx||!S.sound)return;const r=.94+Math.random()*.12;
+    this.air(.8,480*r,1900*r,.28,.7);            // 공기를 다시 빨아들이며 부풂
+    this.air(.85,900*r,2600*r,.08,.8,.05);
   },
   drag(v){ if(!this.ctx||!S.sound)return;v=v||.5;
-    this.crackle(this.dense,.14,.14+.4*v,.9+.3*v,2.6);this.sweep(.1,1500,900,.03+.08*v,1);
+    this.air(.18,2500+1300*v,1300,.06+.16*v,.8);  // 문지르면 짧게 "쉿"
   },
-  holdStart(){ // 누르고 있는 동안 이어지는 바스락 (눌리는 속도에 따라 크기가 변함)
+  holdStart(){ // 누르는 동안 이어지는 공기 소리
     if(!this.ctx||this.hold)return;
-    const c=this.ctx,src=c.createBufferSource();src.buffer=this.dense;src.loop=true;src.playbackRate.value=.85;
-    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=1100;
-    const g=c.createGain();g.gain.value=0;src.connect(hp);hp.connect(g);g.connect(this.master);src.start(0,Math.random()*1.5);
-    this.hold={src,g};
+    const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise;src.loop=true;
+    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=380;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=.75;bp.frequency.value=1200;
+    const lpH=c.createBiquadFilter();lpH.type='lowpass';lpH.frequency.value=5200;
+    const flut=c.createGain();flut.gain.value=1;                       // 새는 공기의 미세한 떨림
+    const lfo=c.createOscillator(),ld=c.createGain();lfo.frequency.value=8;ld.gain.value=.12;lfo.connect(ld);ld.connect(flut.gain);
+    const g=c.createGain();g.gain.value=0;
+    src.connect(hp);hp.connect(bp);bp.connect(lpH);lpH.connect(flut);flut.connect(g);g.connect(this.master);
+    src.start(0,Math.random()*1.2);lfo.start();
+    this.hold={src,lfo,g,bp};
   },
-  holdSet(level){ if(!this.hold)return;this.hold.g.gain.setTargetAtTime(S.sound?level*.3:0,this.ctx.currentTime,.05);},
-  holdStop(){ if(!this.hold)return;const h=this.hold;this.hold=null;
-    h.g.gain.setTargetAtTime(0,this.ctx.currentTime,.06);try{h.src.stop(this.ctx.currentTime+.4);}catch(e){} },
-  pop(){ if(!this.ctx||!S.sound)return;this.tone(620,1100,.07,.22);this.crackle(this.dense,.08,.2,1.1,2.5); },
+  holdSet(level){ if(!this.hold)return;const t=this.ctx.currentTime;
+    this.hold.g.gain.setTargetAtTime(S.sound?level*.2:0,t,.05);
+    this.hold.bp.frequency.setTargetAtTime(700+level*2400,t,.06);      // 세게 눌릴수록 높은 "쉬이", 잦아들면 낮아짐
+  },
+  holdStop(){ if(!this.hold)return;const h=this.hold,t=this.ctx.currentTime;this.hold=null;
+    h.g.gain.setTargetAtTime(0,t,.05);try{h.src.stop(t+.4);h.lfo.stop(t+.4);}catch(e){} },
+  pop(){ if(!this.ctx||!S.sound)return;this.tone(620,1100,.07,.22); },
   relief(){ if(!this.ctx||!S.sound)return;const c=this.ctx,t=c.currentTime;
     [392,494,587,784].forEach((f,i)=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;
       const g=c.createGain(),st=t+i*.12;g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.16,st+.05);g.gain.exponentialRampToValueAtTime(.001,st+1.1);
