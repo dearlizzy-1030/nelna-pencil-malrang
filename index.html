@@ -93,64 +93,82 @@ const PI=Math.PI, clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const LOGO_URI='data:image/png;base64,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VpJvB5j7vW1XdUHT1sVj0La6YvtpwHrTlbe143OvGnbv9EFMU5sfX9A5SnOrzur8urmK9/sJbqCa1/t9s2NiiJ0+NUd9td78PMLTVx9rfX5a/+zz9f24S8zX6lbBrkY8Dp5rZCiCTiua+d9rA/V0AucJm4lMvm1eb81bD4Ooo/Wx7BCvd3Cf1Pp8WetHH6fX3tco2d4zB9YybK7raUuzA/N0SkPta3/b+g4coVaCy7pX+HldGf98BLdJXdUEIBfOkTMmNXTchPOs5qx4UetMXxMUNevG2V07t7W+nNa9369anoToY80Ieevv3lWzI1BPZTv2UapXNWvhJLcRgk4nNjdSsz8n1zmtvf2un1n+uW41uVz/875Zx2As6tTPy41HoW6uM22GdO8d3NpZP21hp2M9K+BZm0fB9f96Us9ReLnnNua3mp1wckflm6YU9Pcjn6nsvskHxhqT3l5Xbaj+cp66NgxfbTze9ckdT3pab8huG/Z7V3+P9dSwHwbaux7r5/OuI5/PI59c5r7P5hivd/h8yzzpR6nP8V/ev4r8eurjr+rrrsmDNq3ncX93bLRu7HScbOxwrF/Hem74jxvLZP37L7u+XqWO9s9uHETctl15t7HDHzFqN9mHswAAf3JRHAAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AEggKADQABBB4AAgg4AAQQdAAIIOgAEEHQACCDoABBA0AFg6maz2f8BEgSE/a9yYFgAAAAASUVORK5CYII=';
 const S={stage:'title',sound:true,count:0};
 
-/* ---------- 소리 (WebAudio 합성) ---------- */
+/* ---------- 소리 (WebAudio 합성) ----------
+ * 스펀지 소리 = ① 공기가 빠지는 "쓰으읍" + ② 스펀지 구멍이 하나씩 무너지는 촘촘한 바스락(크래클) + ③ 낮은 눌림.
+ * 크래클은 미리 만들어 둔 '작은 딱 소리 수백 개'를 눌리는 속도에 맞춰 틀어요. */
 const Sound={
-  ctx:null,master:null,noise:null,
+  ctx:null,master:null,noise:null,dense:null,sparse:null,hold:null,
+  setup(ctx){
+    this.ctx=ctx;
+    this.master=ctx.createGain();this.master.gain.value=S.sound?.9:0;
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=11000;
+    const comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.knee.value=14;comp.ratio.value=4;comp.attack.value=.003;comp.release.value=.15;
+    this.master.connect(lp);lp.connect(comp);comp.connect(ctx.destination);
+    const n=ctx.sampleRate;this.noise=ctx.createBuffer(1,n,n);const d=this.noise.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    this.dense=this.makeCrackle(650,2.4);this.sparse=this.makeCrackle(140,2.4);
+  },
   init(){
-    if(this.ctx)return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
-    this.ctx=new AC(); this.master=this.ctx.createGain(); this.master.gain.value=S.sound?.9:0; this.master.connect(this.ctx.destination);
-    const n=this.ctx.sampleRate; this.noise=this.ctx.createBuffer(1,n,n); const d=this.noise.getChannelData(0); for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.setup(new AC());
   },
-  resume(){this.init(); if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
-  setOn(v){S.sound=v; if(this.master)this.master.gain.value=v?.9:0;},
-  burst(t,power,fMin,fMax,len){ // 아주 짧은 잡음 한 번 = 기포 하나
-    const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise;src.playbackRate.value=.8+Math.random()*.7;
-    const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fMin+Math.random()*(fMax-fMin);bp.Q.value=1.5+Math.random()*2;
-    const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(power,t+.002);g.gain.exponentialRampToValueAtTime(.001,t+len);
-    src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t,Math.random()*.6);src.stop(t+len+.03);
+  resume(){this.init();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
+  setOn(v){S.sound=v;if(this.master)this.master.gain.value=v?.9:0;},
+  makeCrackle(rate,dur){ // 작고 짧은 '딱' 소리(감쇠하는 공명음)를 무작위로 흩뿌려 만든 바스락 소리
+    const sr=this.ctx.sampleRate,n=Math.floor(sr*dur),buf=this.ctx.createBuffer(1,n,sr),d=buf.getChannelData(0),cnt=Math.floor(rate*dur);
+    for(let k=0;k<cnt;k++){
+      const st=Math.floor(Math.random()*n),f=1400+Math.random()*4800,dec=(1.2+Math.random()*3.2)/1000,amp=Math.pow(Math.random(),2.4)*.9+.06;
+      const len=Math.min(n-st,Math.floor(sr*dec*6));
+      for(let i=0;i<len;i++){const t=i/sr;d[st+i]+=amp*Math.sin(6.2832*f*t)*Math.exp(-t/dec);}
+    }
+    let mx=0;for(let i=0;i<n;i++)mx=Math.max(mx,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]/=(mx||1);
+    return buf;
   },
-  tone(f0,f1,len,gain,type){
-    const c=this.ctx,t=c.currentTime,o=c.createOscillator(); o.type=type||'sine';
-    o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+len);
-    const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(.001,t+len+.04);
-    o.connect(g); g.connect(this.master); o.start(t); o.stop(t+len+.06);
+  tone(f0,f1,len,gain,type,delay){
+    const c=this.ctx,t=c.currentTime+(delay||0),o=c.createOscillator();o.type=type||'sine';
+    o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+len);
+    const g=c.createGain();g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+len+.04);
+    o.connect(g);g.connect(this.master);o.start(t);o.stop(t+len+.06);
   },
-  hiss(len,freq,gain){ // 말랑한 "찌익" 질감
-    const c=this.ctx,t=c.currentTime,src=c.createBufferSource(); src.buffer=this.noise; src.playbackRate.value=.7+Math.random()*.5;
-    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(freq,t); lp.frequency.exponentialRampToValueAtTime(freq*.4,t+len);
-    const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(.001,t+len);
-    src.connect(lp); lp.connect(g); g.connect(this.master); src.start(t,Math.random()*.5); src.stop(t+len+.02);
-  },
-  // 스펀지 소리: 공기 섞인 "쓰으읍" + 기포(스펀지 구멍)가 톡톡 터지는 소리
   sweep(len,f0,f1,gain,q,delay){ // 필터가 움직이는 공기 소리
     const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=this.noise;src.playbackRate.value=.8+Math.random()*.4;
     const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=q;bp.frequency.setValueAtTime(f0,t);bp.frequency.exponentialRampToValueAtTime(f1,t+len);
-    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+len*.25);g.gain.exponentialRampToValueAtTime(.001,t+len);
+    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+len*.2);g.gain.exponentialRampToValueAtTime(.001,t+len);
     src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t,Math.random()*.5);src.stop(t+len+.03);
   },
-  cells(n,span,gain,fMin,fMax){ // 스펀지 속 작은 기포 터짐
-    const t=this.ctx.currentTime;
-    for(let i=0;i<n;i++){const tt=t+Math.random()*span;this.burst(tt,gain*(.4+Math.random()*.6),fMin,fMax,.008+Math.random()*.014);}
+  crackle(buf,len,gain,rate,decayPow,delay){ // 크래클 한 조각 (처음 세게, 점점 잦아듦)
+    const c=this.ctx,t=c.currentTime+(delay||0),src=c.createBufferSource();src.buffer=buf;src.playbackRate.value=rate||1;
+    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;
+    const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+.012);
+    g.gain.setTargetAtTime(.0001,t+.012,len/(decayPow||3));
+    src.connect(hp);hp.connect(g);g.connect(this.master);src.start(t,Math.random()*(buf.duration-len-.1));src.stop(t+len+.05);
   },
-  squish(){ if(!this.ctx||!S.sound)return; const r=.9+Math.random()*.25;
-    this.sweep(.34,900*r,260*r,.3,.9);               // 공기가 빠지는 소리
-    this.sweep(.2,2400*r,1200*r,.07,1.6);            // 윗부분 바스락
-    this.cells(14,.28,.22,1600,5200);                // 기포 톡톡
-    this.tone(150*r,78*r,.12,.1);                    // 부드러운 눌림
+  squish(){ if(!this.ctx||!S.sound)return;const r=.92+Math.random()*.16;
+    this.sweep(.3,2800*r,750*r,.2,.7);               // 공기가 훅 빠짐
+    this.sweep(.34,950*r,340*r,.15,.8);              // 낮은 공기 소리
+    this.crackle(this.dense,.4,.55,r,3.2);           // 스펀지 구멍이 와르르 무너지는 바스락
+    this.tone(125*r,68*r,.13,.12);                   // 부드러운 눌림
   },
-  release(){ if(!this.ctx||!S.sound)return; const r=.9+Math.random()*.25;
-    this.sweep(.42,320*r,1000*r,.2,.9);              // 공기를 다시 빨아들이며 부푸는 소리
-    this.cells(9,.45,.12,2200,6500);                 // 부풀며 기포가 작게 터짐
+  release(){ if(!this.ctx||!S.sound)return;const r=.92+Math.random()*.16;
+    this.sweep(.6,420*r,1700*r,.13,.8);              // 공기를 다시 빨아들이며 부풂
+    this.crackle(this.sparse,.55,.38,r*.9,2.2,.04);  // 부풀며 드문드문 톡톡
   },
-  drag(v){ if(!this.ctx||!S.sound)return; v=v||.5;
-    this.sweep(.11,800+800*v,600+500*v,.06+.14*v,1.1);this.cells(2+Math.round(4*v),.1,.1+.12*v,1800,5000);
+  drag(v){ if(!this.ctx||!S.sound)return;v=v||.5;
+    this.crackle(this.dense,.14,.14+.4*v,.9+.3*v,2.6);this.sweep(.1,1500,900,.03+.08*v,1);
   },
-  hold(){ if(!this.ctx||!S.sound)return; this.sweep(.9,520,300,.1,.8); this.cells(3,.8,.06,1500,3800); },
-  relief(){ if(!this.ctx||!S.sound)return; const c=this.ctx,t=c.currentTime;
+  holdStart(){ // 누르고 있는 동안 이어지는 바스락 (눌리는 속도에 따라 크기가 변함)
+    if(!this.ctx||this.hold)return;
+    const c=this.ctx,src=c.createBufferSource();src.buffer=this.dense;src.loop=true;src.playbackRate.value=.85;
+    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=1100;
+    const g=c.createGain();g.gain.value=0;src.connect(hp);hp.connect(g);g.connect(this.master);src.start(0,Math.random()*1.5);
+    this.hold={src,g};
+  },
+  holdSet(level){ if(!this.hold)return;this.hold.g.gain.setTargetAtTime(S.sound?level*.3:0,this.ctx.currentTime,.05);},
+  holdStop(){ if(!this.hold)return;const h=this.hold;this.hold=null;
+    h.g.gain.setTargetAtTime(0,this.ctx.currentTime,.06);try{h.src.stop(this.ctx.currentTime+.4);}catch(e){} },
+  pop(){ if(!this.ctx||!S.sound)return;this.tone(620,1100,.07,.22);this.crackle(this.dense,.08,.2,1.1,2.5); },
+  relief(){ if(!this.ctx||!S.sound)return;const c=this.ctx,t=c.currentTime;
     [392,494,587,784].forEach((f,i)=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;
       const g=c.createGain(),st=t+i*.12;g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.16,st+.05);g.gain.exponentialRampToValueAtTime(.001,st+1.1);
       o.connect(g);g.connect(this.master);o.start(st);o.stop(st+1.2);}); },
-  pop(){ if(!this.ctx||!S.sound)return; this.tone(620,1100,.07,.25); },
 };
 try{ if(localStorage.getItem('waxball_sound')==='0'){S.sound=false;$('#soundBtn').textContent='🔇';} }catch(e){}
 
@@ -352,7 +370,7 @@ canvas.addEventListener('pointerdown',e=>{
   ptr.down=true;ptr.lx=e.clientX;ptr.mode='spin';spinV=0;settle=false;
   const hit=S.stage==='play'?hitPencil(e):null;
   if(hit){
-    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();}catch(err){}haptic(24);shake=.5;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
+    ptr.mode='squish';sq.pressed=true;heldDent=addDent(hit);try{Sound.squish();Sound.holdStart();}catch(err){}haptic(24);shake=.5;ptr.px=e.clientX;ptr.py=e.clientY;canvas.style.cursor='grabbing';
     S.count++;$('#cnt').textContent=S.count;relieve(.15);holdT=0;lastHold=performance.now();
   }
 });
@@ -374,7 +392,7 @@ canvas.addEventListener('pointermove',e=>{
   }
 });
 function release(){
-  if(ptr.mode==='squish'){sq.pressed=false;if(heldDent){heldDent.held=false;heldDent=null;}try{Sound.release();}catch(err){}haptic(12);canvas.style.cursor='grab';}
+  if(ptr.mode==='squish'){sq.pressed=false;if(heldDent){heldDent.held=false;heldDent=null;}try{Sound.holdStop();Sound.release();}catch(err){}haptic(12);canvas.style.cursor='grab';}
   ptr.down=false;ptr.mode=null;
 }
 canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
@@ -453,7 +471,10 @@ function frame(now){
   if(ptr.down&&ptr.mode==='squish'&&heldDent){
     holdT+=dt;relieve(dt*(.4+.8*Math.min(1,holdT/4)));      // 0.4%/초 → 최대 1.2%/초 (4초 이상 누르면)
     const nowH=performance.now();
-    if(nowH-lastHold>800){lastHold=nowH;try{Sound.hold();}catch(e){}haptic(9);}
+    if(nowH-lastHold>800){lastHold=nowH;haptic(9);}
+    // 누르는 소리: 아직 깊어지는 중이거나 문지를 때 크고, 다 눌러서 멈추면 아주 작게
+    const hd=heldDent,rem=Math.max(0,(hd.max*(1+.25*Math.min(1,(hd.t||0)/3))-hd.e)/hd.max);
+    try{Sound.holdSet(Math.min(1,.1+rem*.9+hd.act*.9));}catch(e){}
   }
   shake*=Math.exp(-dt*9);
   canvas.style.transform=shake>.02?`translate(${((Math.random()-.5)*1.6*shake).toFixed(2)}px,${((Math.random()-.5)*1.6*shake).toFixed(2)}px)`:'';
@@ -463,7 +484,7 @@ function frame(now){
 $('#loading').style.opacity=0;setTimeout(()=>$('#loading').remove(),600);
 go('title');
 requestAnimationFrame(frame);
-window.waxball={S,go,dents,setRot:v=>{rotY=v;spinV=0;settle=false;}};
+window.waxball={S,go,Sound,dents,setRot:v=>{rotY=v;spinV=0;settle=false;}};
 })();
 </script>
 </body>
