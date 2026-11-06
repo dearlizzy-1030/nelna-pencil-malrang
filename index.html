@@ -236,7 +236,7 @@ const mats={
   tip:new THREE.MeshStandardMaterial({color:0x2B2B2B,roughness:.5,envMapIntensity:.25}),
 };
 /* 말랑이 변형: 손가락이 누른 자리가 넓고 부드럽게 눌리고, 둘레가 부풀고, 문지르면 반죽처럼 끌려가요 (GPU 계산) */
-const NDENT=6,SQ_R=.76,SQ_MAX=.44;
+const NDENT=10,SQ_R=.76,SQ_MAX=.44;
 const sqP=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 눌린 중심, w 깊이
 const sqD=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 누르는 방향
 const sqS=Array.from({length:NDENT},()=>new THREE.Vector4(0,0,0,0));   // xyz 끌림(쉬어)
@@ -313,10 +313,10 @@ const sq={x:0,pressed:false};         // 전체가 살짝 눌리는 정도 (튕�
 const dents=[];let heldDent=null;     // 손가락이 누른 자리들 (최대 6개, 놓으면 천천히 올라옴)
 const _inv=new THREE.Matrix4();
 function localDir(){return ray.ray.direction.clone().transformDirection(_inv.copy(pencil.matrixWorld).invert());}
-function addDent(hit){
+function addDent(hit,scale){
   if(dents.length>=NDENT)dents.shift();
   const p=pencil.worldToLocal(hit.point.clone());
-  const d={p,q:p.clone(),dir:localDir(),e:0,held:true,act:0};dents.push(d);return d;
+  const d={p,q:p.clone(),dir:localDir(),e:0,held:true,act:0,max:SQ_MAX*(scale||1)};dents.push(d);return d;
 }
 let rotY=0,spinV=0,settle=false,tAll=0;
 function hitPencil(e){
@@ -345,10 +345,11 @@ canvas.addEventListener('pointermove',e=>{
     if(hit&&heldDent){
       const lp=pencil.worldToLocal(hit.point.clone());
       const dist=Math.hypot(e.clientX-ptr.px,e.clientY-ptr.py);ptr.px=e.clientX;ptr.py=e.clientY;
-      heldDent.act=Math.min(1,heldDent.act+dist*.04);shake=Math.min(1,shake+dist*.012);
-      const now=performance.now();
-      if(dist>2&&now-ptr.ls>70){ptr.ls=now;try{Sound.drag(Math.min(1,dist/24));}catch(err){}haptic(5+Math.min(10,Math.round(dist*.3)));}
-      heldDent.p.copy(lp);heldDent.dir.copy(localDir());
+      heldDent.act=Math.min(1,heldDent.act+dist*.03);shake=Math.min(1,shake+dist*.01);
+      if(lp.distanceTo(heldDent.p)>.34){ // 충분히 움직이면 그 자리를 새로 꾹 누름 (이전 자리는 천천히 올라옴)
+        heldDent.held=false;heldDent=addDent(hit,.75);
+        try{Sound.drag(Math.min(1,dist/24)+.3);}catch(err){}haptic(10);
+      }
     }
   }
 });
@@ -416,15 +417,15 @@ function frame(now){
   for(let i=dents.length-1;i>=0;i--){
     const d=dents[i];
     d.act*=Math.exp(-dt*4);
-    d.q.lerp(d.p,1-Math.exp(-dt*8));                         // 누른 자리가 손가락을 살짝 늦게 따라감 = 끌리는 느낌
-    if(d.held)d.e+=(SQ_MAX-d.e)*(1-Math.exp(-dt*5.5));
-    else d.e*=Math.exp(-dt*2.2);
+    d.q.copy(d.p);                         // 누른 자리가 손가락을 살짝 늦게 따라감 = 끌리는 느낌
+    if(d.held)d.e+=(d.max-d.e)*(1-Math.exp(-dt*5.5));
+    else d.e*=Math.exp(-dt*1.9);
     if(!d.held&&d.e<.004){dents.splice(i,1);if(heldDent===d)heldDent=null;}
   }
   for(let i=0;i<NDENT;i++){
     const d=dents[i];
     if(d){sqP[i].set(d.q.x,d.q.y,d.q.z,d.e*(1+.09*d.act*Math.sin(tAll*15)));sqD[i].set(d.dir.x,d.dir.y,d.dir.z,0);
-      const k=d.e/SQ_MAX*.62;sqS[i].set((d.p.x-d.q.x)*k,(d.p.y-d.q.y)*k,(d.p.z-d.q.z)*k,0);}
+      const k=0;sqS[i].set((d.p.x-d.q.x)*k,(d.p.y-d.q.y)*k,(d.p.z-d.q.z)*k,0);}
     else sqP[i].set(0,0,0,0);
   }
 
